@@ -13,7 +13,7 @@ import react.functionalComponent
 import react.useState
 import styled.*
 
-interface CounterProps : RProps {
+external interface CounterProps : RProps {
     var count: Int
 }
 

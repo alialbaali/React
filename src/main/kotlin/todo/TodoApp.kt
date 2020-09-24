@@ -1,5 +1,6 @@
 package todo
 
+import fc
 import kotlinx.css.*
 import kotlinx.css.properties.border
 import kotlinx.html.InputType
@@ -11,7 +12,7 @@ import styled.*
 
 data class TodoAppState(val todoItems: List<TodoItem>)
 
-val TodoApp = functionalComponent<RProps> {
+val TodoApp = fc<RProps> {
 
     styledDiv {
 
@@ -21,62 +22,56 @@ val TodoApp = functionalComponent<RProps> {
 
         fun getId() = todoAppState.todoItems.size
 
-        child(NavBarComponent) {
-            attrs {
-                this.numOfTodoItems = todoAppState.todoItems.count()
-            }
+        NavBarComponent {
+            numOfTodoItems = todoAppState.todoItems.count()
         }
 
-        child(AddTodoItemComponent) {
-            attrs {
-                this.onAdd = { task ->
-                    val todoItems = todoAppState.todoItems
-                    val todoItem = TodoItem(getId(), task)
-                    todoAppState = TodoAppState(todoItems.plus(todoItem))
-                }
+        AddTodoItemComponent {
+            onAdd = { task ->
+                val todoItems = todoAppState.todoItems
+                val todoItem = TodoItem(getId(), task)
+                todoAppState = TodoAppState(todoItems.plus(todoItem))
             }
         }
 
         todoAppState.todoItems.forEach { todoItem ->
-            child(TodoItemComponent) {
-                attrs {
-                    this.key = todoItem.id.toString()
-                    this.todoItem = todoItem
-                    this.onCheck = { id, isChecked ->
-                        val todoItems = todoAppState.todoItems
-                            .toMutableList()
+            TodoItemComponent {
+                this.key = todoItem.id.toString()
+                this.todoItem = todoItem
+                onCheck = { id, isChecked ->
+                    val todoItems = todoAppState.todoItems
+                        .toMutableList()
 
-                        val todoItem = todoItems.find { it.id == id }!!
+                    val todoItem = todoItems.find { it.id == id }!!
 
-                        todoAppState = TodoAppState(todoItems.apply {
-                            remove(todoItem)
-                            add(todoItem.copy(isChecked = isChecked))
-                        })
-                    }
-                    this.onEdit = { id, task ->
-                        val todoItems = todoAppState.todoItems
-                            .toMutableList()
-                        val todoItem = todoItems.find { it.id == id }!!
-                        todoAppState = TodoAppState(todoItems.apply {
-                            remove(todoItem)
-                            add(todoItem.copy(task = task))
-                        })
-                    }
-                    this.onDelete = { id ->
-                        val todoItems = todoAppState.todoItems
-                        todoAppState = TodoAppState(todoItems.minus(todoItems.first { it.id == id }))
-                    }
+                    todoAppState = TodoAppState(todoItems.apply {
+                        remove(todoItem)
+                        add(todoItem.copy(isChecked = isChecked))
+                    })
+                }
+                onEdit = { id, task ->
+                    val todoItems = todoAppState.todoItems
+                        .toMutableList()
+                    val todoItem = todoItems.find { it.id == id }!!
+                    todoAppState = TodoAppState(todoItems.apply {
+                        remove(todoItem)
+                        add(todoItem.copy(task = task))
+                    })
+                }
+                onDelete = { id ->
+                    val todoItems = todoAppState.todoItems
+                    todoAppState = TodoAppState(todoItems.minus(todoItems.first { it.id == id }))
                 }
             }
         }
     }
 }
 
-interface NavBarProps : RProps {
+external interface NavBarProps : RProps {
     var numOfTodoItems: Int
 }
 
-val NavBarComponent = functionalComponent<NavBarProps> { props ->
+val NavBarComponent = fc<NavBarProps> { props ->
     styledH1 {
         css {
             color = Color.blue
@@ -85,11 +80,11 @@ val NavBarComponent = functionalComponent<NavBarProps> { props ->
     }
 }
 
-interface AddItemProps : RProps {
+external interface AddItemProps : RProps {
     var onAdd: (task: String) -> Unit
 }
 
-val AddTodoItemComponent = functionalComponent<AddItemProps> { props ->
+val AddTodoItemComponent = fc<AddItemProps> { props ->
 
     var task by useState { "" }
     var isError by useState { false }
@@ -156,14 +151,14 @@ val AddTodoItemComponent = functionalComponent<AddItemProps> { props ->
 }
 
 
-interface TodoItemProps : RProps {
+external interface TodoItemProps : RProps {
     var todoItem: TodoItem
     var onCheck: (id: Int, isChecked: Boolean) -> Unit
     var onEdit: (id: Int, task: String) -> Unit
     var onDelete: (id: Int) -> Unit
 }
 
-val TodoItemComponent = functionalComponent<TodoItemProps> { props ->
+val TodoItemComponent = fc<TodoItemProps> { props ->
 
     var task by useState { props.todoItem.task }
     var isEdit by useState { false }
@@ -253,7 +248,7 @@ object TodoAppStyle : StyleSheet("TodoAppStyleSheet", isStatic = true) {
     val Root by css {
         display = Display.flex
         flexDirection = FlexDirection.column
-        justifyContent = JustifyContent.center
+        justifyContent = JustifyContent.spaceEvenly
         alignItems = Align.center
         fontFamily = "sans-serif"
     }
@@ -261,7 +256,7 @@ object TodoAppStyle : StyleSheet("TodoAppStyleSheet", isStatic = true) {
     val TodoItem by css {
         display = Display.flex
         flexDirection = FlexDirection.row
-        justifyContent = JustifyContent.center
+        justifyContent = JustifyContent.spaceEvenly
         alignItems = Align.center
         flexWrap = FlexWrap.wrap
     }
